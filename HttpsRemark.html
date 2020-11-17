@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="项目中登录请求采用了 RSA 加密算法，线上部署用的 https 协议。回去又翻了图解，总结一下。 Why Https ?Http的缺点大致总结如下 通信使用明文（不加密），内容可能会被窃听  不验证通信方的身份，因此有可能遭遇伪装  无法证明报文的完整性，所以有可能内容已遭篡改">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Https 相关总结">
+<meta property="og:url" content="https://zhangsong.site/HttpsRemark.html">
+<meta property="og:site_name" content="Jason Zhang">
+<meta property="og:description" content="项目中登录请求采用了 RSA 加密算法，线上部署用的 https 协议。回去又翻了图解，总结一下。 Why Https ?Http的缺点大致总结如下 通信使用明文（不加密），内容可能会被窃听  不验证通信方的身份，因此有可能遭遇伪装  无法证明报文的完整性，所以有可能内容已遭篡改">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2017/12/14/5a31f73da61cb.jpg">
+<meta property="og:image" content="https://i.loli.net/2017/12/14/5a3212f6366ce.jpg">
+<meta property="article:published_time" content="2016-12-22T08:39:04.000Z">
+<meta property="article:modified_time" content="2020-09-27T09:44:38.662Z">
+<meta property="article:author" content="Jason Zhang">
+<meta property="article:tag" content="http">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2017/12/14/5a31f73da61cb.jpg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>Https 相关总结</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+<meta name="generator" content="Hexo 5.0.2"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/archives">归档</a></li>
+         
+          <li><a href="/categories">分类</a></li>
+         
+          <li><a href="/tags">标签</a></li>
+         
+          <li><a href="/about">关于</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/crossOrigin.html"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/jsGarbageCollection.html"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://zhangsong.site/HttpsRemark.html"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://zhangsong.site/HttpsRemark.html&text=Https 相关总结"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://zhangsong.site/HttpsRemark.html&title=Https 相关总结"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://zhangsong.site/HttpsRemark.html&is_video=false&description=Https 相关总结"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Https 相关总结&body=Check out this article: https://zhangsong.site/HttpsRemark.html"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://zhangsong.site/HttpsRemark.html&title=Https 相关总结"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://zhangsong.site/HttpsRemark.html&title=Https 相关总结"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://zhangsong.site/HttpsRemark.html&title=Https 相关总结"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://zhangsong.site/HttpsRemark.html&title=Https 相关总结"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://zhangsong.site/HttpsRemark.html&name=Https 相关总结&description=&lt;p&gt;&lt;code&gt;项目中登录请求采用了 RSA 加密算法，线上部署用的 https 协议。回去又翻了图解，总结一下。&lt;/code&gt;&lt;/p&gt;
+&lt;h2 id=&#34;Why-Https&#34;&gt;&lt;a href=&#34;#Why-Https&#34; class=&#34;headerlink&#34; title=&#34;Why Https ?&#34;&gt;&lt;/a&gt;Why Https ?&lt;/h2&gt;&lt;h4 id=&#34;Http的缺点大致总结如下&#34;&gt;&lt;a href=&#34;#Http的缺点大致总结如下&#34; class=&#34;headerlink&#34; title=&#34;Http的缺点大致总结如下&#34;&gt;&lt;/a&gt;Http的缺点大致总结如下&lt;/h4&gt;&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;#1-1&#34;&gt;通信使用明文（不加密），内容可能会被窃听&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;#1-2&#34;&gt;不验证通信方的身份，因此有可能遭遇伪装&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;#1-3&#34;&gt;无法证明报文的完整性，所以有可能内容已遭篡改&lt;/a&gt;&lt;/p&gt;"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://zhangsong.site/HttpsRemark.html&t=Https 相关总结"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Why-Https"><span class="toc-number">1.</span> <span class="toc-text">Why Https ?</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Http%E7%9A%84%E7%BC%BA%E7%82%B9%E5%A4%A7%E8%87%B4%E6%80%BB%E7%BB%93%E5%A6%82%E4%B8%8B"><span class="toc-number">1.0.1.</span> <span class="toc-text">Http的缺点大致总结如下</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E6%98%8E%E6%96%87%E9%80%9A%E4%BF%A1%E5%8F%AF%E8%83%BD%E8%A2%AB%E7%AA%83%E5%90%AC"><span class="toc-number">1.0.2.</span> <span class="toc-text">1. 明文通信可能被窃听</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E4%B8%8D%E9%AA%8C%E8%AF%81%E9%80%9A%E4%BF%A1%E6%96%B9%E7%9A%84%E8%BA%AB%E4%BB%BD%EF%BC%8C%E5%8F%AF%E8%83%BD%E9%81%AD%E9%81%87%E4%BC%AA%E8%A3%85"><span class="toc-number">1.0.3.</span> <span class="toc-text">2. 不验证通信方的身份，可能遭遇伪装</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E6%97%A0%E6%B3%95%E8%AF%81%E6%98%8E%E6%8A%A5%E6%96%87%E7%9A%84%E5%AE%8C%E6%95%B4%E6%80%A7%EF%BC%8C%E5%86%85%E5%AE%B9%E5%8F%AF%E8%83%BD%E5%B7%B2%E9%81%AD%E7%AF%A1%E6%94%B9"><span class="toc-number">1.0.4.</span> <span class="toc-text">3. 无法证明报文的完整性，内容可能已遭篡改</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Http-%E5%8A%A0%E5%AF%86-%E8%AE%A4%E8%AF%81-%E5%AE%8C%E6%95%B4%E6%80%A7%E4%BF%9D%E6%8A%A4-Https"><span class="toc-number">2.</span> <span class="toc-text">Http + 加密 + 认证 + 完整性保护 &#x3D; Https</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SSL"><span class="toc-number">2.1.</span> <span class="toc-text">SSL</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86-amp-amp-%E5%85%B1%E4%BA%AB%E7%A7%98%E9%92%A5%E5%8A%A0%E5%AF%86"><span class="toc-number">2.1.1.</span> <span class="toc-text">对称加密&amp;&amp;共享秘钥加密</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%AC%E5%BC%80%E5%AF%86%E9%92%A5%E5%8A%A0%E5%AF%86"><span class="toc-number">2.1.2.</span> <span class="toc-text">公开密钥加密</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Https-%E9%87%87%E7%94%A8%E6%B7%B7%E5%90%88%E5%8A%A0%E5%AF%86%E6%9C%BA%E5%88%B6"><span class="toc-number">2.2.</span> <span class="toc-text">Https 采用混合加密机制</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AD%96%E7%95%A5"><span class="toc-number">2.2.1.</span> <span class="toc-text">策略</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AF%81%E6%98%8E%E5%85%AC%E5%BC%80%E5%AF%86%E9%92%A5%E6%AD%A3%E7%A1%AE%E6%80%A7%E7%9A%84%E8%AF%81%E4%B9%A6"><span class="toc-number">2.2.2.</span> <span class="toc-text">证明公开密钥正确性的证书</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B4%E4%B8%AA-HTTPS-%E7%9A%84%E9%80%9A%E4%BF%A1%E4%BA%8B%E5%8A%A1%E5%A6%82%E4%B8%8B"><span class="toc-number">2.2.3.</span> <span class="toc-text">整个 HTTPS 的通信事务如下</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Https-%E7%9A%84%E7%BC%BA%E7%82%B9"><span class="toc-number">2.3.</span> <span class="toc-text">Https 的缺点</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#SSL-%E7%9A%84%E6%85%A2"><span class="toc-number">2.3.1.</span> <span class="toc-text">SSL 的慢</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AF%81%E4%B9%A6%E7%9A%84%E8%B4%B5"><span class="toc-number">2.3.2.</span> <span class="toc-text">证书的贵</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D"><span class="toc-number">2.4.</span> <span class="toc-text">数字签名</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AD%BE%E5%90%8D%E6%98%AF%E5%8A%A0%E4%BA%86%E5%AF%86%E7%9A%84%E6%A0%A1%E9%AA%8C%E5%92%8C"><span class="toc-number">2.4.1.</span> <span class="toc-text">签名是加了密的校验和</span></a></li></ol></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Https 相关总结
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Jason Zhang</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2016-12-22T08:39:04.000Z" itemprop="datePublished">2016-12-22</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/http/">http</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/http/" rel="tag">http</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p><code>项目中登录请求采用了 RSA 加密算法，线上部署用的 https 协议。回去又翻了图解，总结一下。</code></p>
+<h2 id="Why-Https"><a href="#Why-Https" class="headerlink" title="Why Https ?"></a>Why Https ?</h2><h4 id="Http的缺点大致总结如下"><a href="#Http的缺点大致总结如下" class="headerlink" title="Http的缺点大致总结如下"></a>Http的缺点大致总结如下</h4><ul>
+<li><p><a href="#1-1">通信使用明文（不加密），内容可能会被窃听</a></p>
+</li>
+<li><p><a href="#1-2">不验证通信方的身份，因此有可能遭遇伪装</a></p>
+</li>
+<li><p><a href="#1-3">无法证明报文的完整性，所以有可能内容已遭篡改</a></p>
+<a id="more"></a>
+</li>
+</ul>
+<h4 id="1-明文通信可能被窃听"><a href="#1-明文通信可能被窃听" class="headerlink" title="1. 明文通信可能被窃听"></a>1. 明文通信可能被窃听</h4><p><a name="锚点" id="1-1"></a></p>
+<p>由于 Http 协议本身并不具有加密的功能，所以无法做到对通信内容（请求&amp;&amp;响应）进行加密，只能使用明文传输。窃听相同段上的网络通信并非难事，用简单的抓包工具就可以获取数据包，解析后传输数据就暴露了。</p>
+<h4 id="2-不验证通信方的身份，可能遭遇伪装"><a href="#2-不验证通信方的身份，可能遭遇伪装" class="headerlink" title="2. 不验证通信方的身份，可能遭遇伪装"></a>2. 不验证通信方的身份，可能遭遇伪装</h4><p><a name="锚点" id="1-2"></a></p>
+<p>Http 协议不验证通信方的身份，任何人都可以发起请求。并且，只要服务器收到请求，不管是谁，都会返回一个响应（除非服务器配置了白名单或者黑名单）。所以可能会遭遇以下几种情况👇</p>
+<ul>
+<li>客户端伪装</li>
+<li>服务器伪装</li>
+<li>DOS 攻击</li>
+</ul>
+<h4 id="3-无法证明报文的完整性，内容可能已遭篡改"><a href="#3-无法证明报文的完整性，内容可能已遭篡改" class="headerlink" title="3. 无法证明报文的完整性，内容可能已遭篡改"></a>3. 无法证明报文的完整性，内容可能已遭篡改</h4><p><a name="锚点" id="1-3"></a></p>
+<p>Http 无法验证报文的完整性，意思就是没有任何办法确保目标客户端收到的响应与目标服务器返回的响应是完全相同的，当然同样的，也无法确保目标服务器收到的请求与目标客户端发出的请求是完全相同的。</p>
+<p>比如，从某个 web 网站上下载的资料，是无法确定下载到机器上的就是你当初请求的资料，很可能在你请求途中你的请求被拦截了，然后你的请求参数被修改，然后服务器返回的响应当然不是你当时请求的。也可能你的请求没有被拦截，服务器返回了正确的资料，结果这个响应被拦截，然后被修改完，再发给你，这是你收到的也不是当时请求的。这种攻击就叫做 中间人攻击（Man In The Middle attack , MITM）。</p>
+<h2 id="Http-加密-认证-完整性保护-Https"><a href="#Http-加密-认证-完整性保护-Https" class="headerlink" title="Http + 加密 + 认证 + 完整性保护 = Https"></a>Http + 加密 + 认证 + 完整性保护 = Https</h2><p>添加了加密及认证机制的 http 就进化成了 https。</p>
+<p><img src="https://i.loli.net/2017/12/14/5a31f73da61cb.jpg" alt="对比图片"></p>
+<p>Https 不是一种新协议，只是 http 通信接口部分使用了 SSL 和 TSL 协议代替而已。通常 http 直接和 TCP 通信，当使用 SSL 时，变成先和 SSL 通信，再由 SSL 和 TCP 通信。SSL 是一种应用广泛的网络安全协议。简介👇</p>
+<h3 id="SSL"><a href="#SSL" class="headerlink" title="SSL"></a>SSL</h3><p>SSL 采用公开密钥加密方式。</p>
+<h4 id="对称加密-amp-amp-共享秘钥加密"><a href="#对称加密-amp-amp-共享秘钥加密" class="headerlink" title="对称加密&amp;&amp;共享秘钥加密"></a>对称加密&amp;&amp;共享秘钥加密</h4><p>加密和解密都使用同一个秘钥，以共享秘钥加密时必须把秘钥也一起发给对方，这样做蛋疼的地方就是，一旦通信被监听，数据和秘钥都一起被搞走了，这样人家也能给你解密，加密似乎并没起毛用。</p>
+<h4 id="公开密钥加密"><a href="#公开密钥加密" class="headerlink" title="公开密钥加密"></a>公开密钥加密</h4><p>使用一对非对称的秘钥，私有秘钥和公开密钥。私有秘钥只有接收方（服务器）自己知道，公开密钥谁都知道。这样发送方（客户端）使用公开密钥进行加密，接收方使用私有秘钥解密，即使通信被监听，监听者不知道解密用的私有秘钥，无法解密，保护了数据安全。</p>
+<h3 id="Https-采用混合加密机制"><a href="#Https-采用混合加密机制" class="headerlink" title="Https 采用混合加密机制"></a>Https 采用混合加密机制</h3><h4 id="策略"><a href="#策略" class="headerlink" title="策略"></a>策略</h4><p>公开密钥的加密过程比较复杂，如果整个通信过程全部使用公开密钥加密，则会影响通信效率。所以这种混合机智的策略就是 👇</p>
+<blockquote>
+<ol>
+<li>使用公开密钥加密方式安全地交换 共享秘钥加密使用的秘钥</li>
+<li>确保交换的秘钥是安全的前提下，使用共享秘钥加密方式进行通信</li>
+</ol>
+</blockquote>
+<p>但是即便如此，仍然存在漏洞，因为我们无法确保我们获得的公开密钥就是目标服务器发行的公开秘钥，这个秘钥很可能在遭遇了中间人攻击以后被篡改了。</p>
+<h4 id="证明公开密钥正确性的证书"><a href="#证明公开密钥正确性的证书" class="headerlink" title="证明公开密钥正确性的证书"></a>证明公开密钥正确性的证书</h4><p>为了解决上述问题，可以使用由数字证书认证机构（CA）颁发的证书。CA 是服务器和客户端都可以信赖的第三方机构。证书颁发加密过程如下</p>
+<blockquote>
+<ol>
+<li>服务器的运营人员向 CA 机构提出公开密钥的申请</li>
+<li>CA 判定申请者的身份后，会使用自己的私有秘钥对服务器的公开密钥署<a href="#sign">数字签名</a> 并颁发公钥证书</li>
+<li>服务器将获得的公钥证书发送给客户端</li>
+<li>客户端用 CA 机构的公开密钥对证书的数字签名进行验证，如果验证通过则说明服务器的公开密钥是可信的。</li>
+</ol>
+</blockquote>
+<h4 id="整个-HTTPS-的通信事务如下"><a href="#整个-HTTPS-的通信事务如下" class="headerlink" title="整个 HTTPS 的通信事务如下"></a>整个 HTTPS 的通信事务如下</h4><blockquote>
+<ol>
+<li>客户端 say hello ；<br>报文中制定了客户端支持的 SSL 版本，加密组件列表等信息。</li>
+<li>服务器 say hello ；<br>同样指定了 SSL 版本，加密组件列表，这些是根据客户端请求筛选出来的。</li>
+<li>服务器发送证书报文。</li>
+<li>服务器 say hello done 。</li>
+<li>客户端弄一个随机密码串出来，并且把它用 证书里面鼓捣出来的公开密钥 进行加密处理，然后把它发送给服务器，告诉服务器我要换密码。</li>
+<li>客户端 继续发送 change cipher spec 报文，告诉服务器后面的通信使用我给你的密码，使用对称加密算法加密。</li>
+<li>客户端发送 finished，准备发送数据请求。</li>
+<li>服务器也发送 change cipher spec 报文，响应更换加密协议。</li>
+<li>服务器也发送 finished，准备接受数据请求，至此，SSL 连接建立完成，通信受到保护。</li>
+<li>应用层协议通信，http 请求和响应。</li>
+<li>客户端断开连接，发送close_notify。</li>
+<li>客户端发送TCP FIN，断开 TCP 连接。</li>
+</ol>
+</blockquote>
+<h3 id="Https-的缺点"><a href="#Https-的缺点" class="headerlink" title="Https 的缺点"></a>Https 的缺点</h3><h4 id="SSL-的慢"><a href="#SSL-的慢" class="headerlink" title="SSL 的慢"></a>SSL 的慢</h4><p>Https 使用了 SSL 和 TSL 协议，Https 也存在一些问题，当它使用 SSL 的时候，它的处理速度会变慢。这里的慢，分下面两种👇</p>
+<blockquote>
+<ul>
+<li><strong>通信速度</strong> 变慢。与 http 相比，它的网络负载会增加2-100倍。出去和 TCP 连接，发送 http 请求&amp;&amp;响应 以外，还必须进行SSL 通信，增加了整体的通信量。</li>
+<li><strong>处理速度</strong> 变慢。 SSL 还要经过加密处理，服务器和客户端都要进行加密解密运算，这样会消耗大量的硬件资源，导致处理速度变慢。</li>
+</ul>
+</blockquote>
+<p>SSL 的慢并没有根本的解决办法，可以通过使用 SSL 加速器来改善。</p>
+<h4 id="证书的贵"><a href="#证书的贵" class="headerlink" title="证书的贵"></a>证书的贵</h4><p>CA 颁发的证书是要用银子买来的，而一年的证书授权大约需要600软妹币 💵 💵 💵</p>
+<hr>
+<p>下面的东西属于知识拓展项：</p>
+<p><code>关于加密算法，图解并没有掰扯，跑到权威指南翻了一翻，对其中的部分概念了解了一下</code></p>
+<h3 id="数字签名"><a href="#数字签名" class="headerlink" title="数字签名"></a>数字签名<a name="锚点" id="sign"></a></h3><p>下面权威指南的阐述略显晦涩， 阮一峰的<a target="_blank" rel="noopener" href="http://www.ruanyifeng.com/blog/2011/08/what_is_a_digital_signature.html">这篇文章</a>比较易于理解。</p>
+<blockquote>
+<p>除了加 / 解密报文之外，还可以用加密系统对报文进行签名(sign)，以说明是谁编写的报文，同时证明报文未被篡改过。这种技术被称为数字签名(digital signing)。</p>
+</blockquote>
+<h4 id="签名是加了密的校验和"><a href="#签名是加了密的校验和" class="headerlink" title="签名是加了密的校验和"></a>签名是加了密的校验和</h4><p>数字签名是附加在报文上的特殊加密校验码。使用数字签名有以下两个好处。</p>
+<blockquote>
+<ul>
+<li>签名可以证明是作者编写了这条报文。只有作者才会有最机密的私有密钥，因此，只有作者才能计算出这些校验和。校验和就像来自作者的个人“签名”一样。</li>
+<li>签名可以防止报文被篡改。如果有恶意攻击者在报文传输过程中对其进行了修改，校验和就不再匹配了。由于校验和只有作者保密的私有密钥才能产生，所以攻击者无法为篡改了的报文伪造出正确的校验码。</li>
+</ul>
+</blockquote>
+<p>数字签名通常是用非对称公开密钥技术产生的。因为只有所有者才知道其私有密钥，所以可以将作者的私有密钥当作一种“指纹”使用。</p>
+<p> <img src="https://i.loli.net/2017/12/14/5a3212f6366ce.jpg" alt=""></p>
+<p>上图的签名流程如下👇</p>
+<blockquote>
+<ul>
+<li>节点 A 将变长报文提取为定长的摘要。</li>
+<li>节点 A 对摘要应用了一个“签名”函数，这个函数会将用户的私有密钥作为参数。因为只有用户才知道私有密钥，所以正确的签名函数会说明签名者就是其所有者。在图中，由于解码函数 D 中包含了用户的私有密钥，所以我们将其作为签名函数使用。</li>
+<li>一旦计算出签名，节点A就将其附加在报文的末尾，并将报文和签名都发送给B。</li>
+<li>在接收端，如果节点 B 需要确定报文确实是节点 A 写的，而且没有被篡改过，节点 B 就可以对签名进行检查。节点 B 接收经私有密钥扰码的签名，并应用了使用公开密钥的反函数。如果拆包后的摘要与节点 B 自己的摘要版本不匹配，要么就是报文在传输过程中被篡改了，要么就是发送端没有节点 A 的私有密钥(也就是说它不是节点 A)。</li>
+</ul>
+</blockquote>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>加载评论需要在浏览器启用 JavaScript 脚本支持。</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/archives">归档</a></li>
+         
+          <li><a href="/categories">分类</a></li>
+         
+          <li><a href="/tags">标签</a></li>
+         
+          <li><a href="/about">关于</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Why-Https"><span class="toc-number">1.</span> <span class="toc-text">Why Https ?</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Http%E7%9A%84%E7%BC%BA%E7%82%B9%E5%A4%A7%E8%87%B4%E6%80%BB%E7%BB%93%E5%A6%82%E4%B8%8B"><span class="toc-number">1.0.1.</span> <span class="toc-text">Http的缺点大致总结如下</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E6%98%8E%E6%96%87%E9%80%9A%E4%BF%A1%E5%8F%AF%E8%83%BD%E8%A2%AB%E7%AA%83%E5%90%AC"><span class="toc-number">1.0.2.</span> <span class="toc-text">1. 明文通信可能被窃听</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E4%B8%8D%E9%AA%8C%E8%AF%81%E9%80%9A%E4%BF%A1%E6%96%B9%E7%9A%84%E8%BA%AB%E4%BB%BD%EF%BC%8C%E5%8F%AF%E8%83%BD%E9%81%AD%E9%81%87%E4%BC%AA%E8%A3%85"><span class="toc-number">1.0.3.</span> <span class="toc-text">2. 不验证通信方的身份，可能遭遇伪装</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E6%97%A0%E6%B3%95%E8%AF%81%E6%98%8E%E6%8A%A5%E6%96%87%E7%9A%84%E5%AE%8C%E6%95%B4%E6%80%A7%EF%BC%8C%E5%86%85%E5%AE%B9%E5%8F%AF%E8%83%BD%E5%B7%B2%E9%81%AD%E7%AF%A1%E6%94%B9"><span class="toc-number">1.0.4.</span> <span class="toc-text">3. 无法证明报文的完整性，内容可能已遭篡改</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Http-%E5%8A%A0%E5%AF%86-%E8%AE%A4%E8%AF%81-%E5%AE%8C%E6%95%B4%E6%80%A7%E4%BF%9D%E6%8A%A4-Https"><span class="toc-number">2.</span> <span class="toc-text">Http + 加密 + 认证 + 完整性保护 &#x3D; Https</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SSL"><span class="toc-number">2.1.</span> <span class="toc-text">SSL</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86-amp-amp-%E5%85%B1%E4%BA%AB%E7%A7%98%E9%92%A5%E5%8A%A0%E5%AF%86"><span class="toc-number">2.1.1.</span> <span class="toc-text">对称加密&amp;&amp;共享秘钥加密</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%AC%E5%BC%80%E5%AF%86%E9%92%A5%E5%8A%A0%E5%AF%86"><span class="toc-number">2.1.2.</span> <span class="toc-text">公开密钥加密</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Https-%E9%87%87%E7%94%A8%E6%B7%B7%E5%90%88%E5%8A%A0%E5%AF%86%E6%9C%BA%E5%88%B6"><span class="toc-number">2.2.</span> <span class="toc-text">Https 采用混合加密机制</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AD%96%E7%95%A5"><span class="toc-number">2.2.1.</span> <span class="toc-text">策略</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AF%81%E6%98%8E%E5%85%AC%E5%BC%80%E5%AF%86%E9%92%A5%E6%AD%A3%E7%A1%AE%E6%80%A7%E7%9A%84%E8%AF%81%E4%B9%A6"><span class="toc-number">2.2.2.</span> <span class="toc-text">证明公开密钥正确性的证书</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B4%E4%B8%AA-HTTPS-%E7%9A%84%E9%80%9A%E4%BF%A1%E4%BA%8B%E5%8A%A1%E5%A6%82%E4%B8%8B"><span class="toc-number">2.2.3.</span> <span class="toc-text">整个 HTTPS 的通信事务如下</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Https-%E7%9A%84%E7%BC%BA%E7%82%B9"><span class="toc-number">2.3.</span> <span class="toc-text">Https 的缺点</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#SSL-%E7%9A%84%E6%85%A2"><span class="toc-number">2.3.1.</span> <span class="toc-text">SSL 的慢</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AF%81%E4%B9%A6%E7%9A%84%E8%B4%B5"><span class="toc-number">2.3.2.</span> <span class="toc-text">证书的贵</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D"><span class="toc-number">2.4.</span> <span class="toc-text">数字签名</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AD%BE%E5%90%8D%E6%98%AF%E5%8A%A0%E4%BA%86%E5%AF%86%E7%9A%84%E6%A0%A1%E9%AA%8C%E5%92%8C"><span class="toc-number">2.4.1.</span> <span class="toc-text">签名是加了密的校验和</span></a></li></ol></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://zhangsong.site/HttpsRemark.html"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://zhangsong.site/HttpsRemark.html&text=Https 相关总结"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://zhangsong.site/HttpsRemark.html&title=Https 相关总结"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://zhangsong.site/HttpsRemark.html&is_video=false&description=Https 相关总结"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Https 相关总结&body=Check out this article: https://zhangsong.site/HttpsRemark.html"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://zhangsong.site/HttpsRemark.html&title=Https 相关总结"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://zhangsong.site/HttpsRemark.html&title=Https 相关总结"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://zhangsong.site/HttpsRemark.html&title=Https 相关总结"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://zhangsong.site/HttpsRemark.html&title=Https 相关总结"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://zhangsong.site/HttpsRemark.html&name=Https 相关总结&description=&lt;p&gt;&lt;code&gt;项目中登录请求采用了 RSA 加密算法，线上部署用的 https 协议。回去又翻了图解，总结一下。&lt;/code&gt;&lt;/p&gt;
+&lt;h2 id=&#34;Why-Https&#34;&gt;&lt;a href=&#34;#Why-Https&#34; class=&#34;headerlink&#34; title=&#34;Why Https ?&#34;&gt;&lt;/a&gt;Why Https ?&lt;/h2&gt;&lt;h4 id=&#34;Http的缺点大致总结如下&#34;&gt;&lt;a href=&#34;#Http的缺点大致总结如下&#34; class=&#34;headerlink&#34; title=&#34;Http的缺点大致总结如下&#34;&gt;&lt;/a&gt;Http的缺点大致总结如下&lt;/h4&gt;&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;#1-1&#34;&gt;通信使用明文（不加密），内容可能会被窃听&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;#1-2&#34;&gt;不验证通信方的身份，因此有可能遭遇伪装&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;#1-3&#34;&gt;无法证明报文的完整性，所以有可能内容已遭篡改&lt;/a&gt;&lt;/p&gt;"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://zhangsong.site/HttpsRemark.html&t=Https 相关总结"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    <nav>
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/archives">归档</a></li>
+         
+          <li><a href="/categories">分类</a></li>
+         
+          <li><a href="/tags">标签</a></li>
+         
+          <li><a href="/about">关于</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+  <div class="footer-right">
+    Copyright &copy; 2020 Jason Zhang 京ICP备20004994号
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'zhangsong';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
+</body>
+</html>

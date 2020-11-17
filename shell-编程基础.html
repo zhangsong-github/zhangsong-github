@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="打印&#x2F;输入&#x2F;输出 echo： 是Shell的一个内部指令，用于在屏幕上打印出指定的字符串。 123echo arg echo -e arg #执行arg里的转义字符。echo加了-e默认会换行echo arg &gt; myfile #显示结果重定向至文件，会生成myfile文件 注意，echo后单引号和双引号作用是不同的。单引号不能转义里面的字符。双引号可有可无，单引号主要用在原样输出中。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="shell 脚本编程之变量篇">
+<meta property="og:url" content="https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html">
+<meta property="og:site_name" content="Jason Zhang">
+<meta property="og:description" content="打印&#x2F;输入&#x2F;输出 echo： 是Shell的一个内部指令，用于在屏幕上打印出指定的字符串。 123echo arg echo -e arg #执行arg里的转义字符。echo加了-e默认会换行echo arg &gt; myfile #显示结果重定向至文件，会生成myfile文件 注意，echo后单引号和双引号作用是不同的。单引号不能转义里面的字符。双引号可有可无，单引号主要用在原样输出中。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-01-30T03:18:20.000Z">
+<meta property="article:modified_time" content="2020-09-27T09:44:38.664Z">
+<meta property="article:author" content="Jason Zhang">
+<meta property="article:tag" content="脚本编程 shell bash">
+<meta name="twitter:card" content="summary">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>shell 脚本编程之变量篇</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+<meta name="generator" content="Hexo 5.0.2"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/archives">归档</a></li>
+         
+          <li><a href="/categories">分类</a></li>
+         
+          <li><a href="/tags">标签</a></li>
+         
+          <li><a href="/about">关于</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/ES6BlockScope.html"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/crossOrigin.html"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html&text=shell 脚本编程之变量篇"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html&title=shell 脚本编程之变量篇"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html&is_video=false&description=shell 脚本编程之变量篇"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=shell 脚本编程之变量篇&body=Check out this article: https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html&title=shell 脚本编程之变量篇"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html&title=shell 脚本编程之变量篇"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html&title=shell 脚本编程之变量篇"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html&title=shell 脚本编程之变量篇"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html&name=shell 脚本编程之变量篇&description=&lt;h2 id=&#34;打印-输入-输出&#34;&gt;&lt;a href=&#34;#打印-输入-输出&#34; class=&#34;headerlink&#34; title=&#34;打印/输入/输出&#34;&gt;&lt;/a&gt;打印/输入/输出&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;echo&lt;/strong&gt;： 是Shell的一个内部指令，用于在屏幕上打印出指定的字符串。&lt;/p&gt;
+&lt;figure class=&#34;highlight shell&#34;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&#34;gutter&#34;&gt;&lt;pre&gt;&lt;span class=&#34;line&#34;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&#34;line&#34;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&#34;line&#34;&gt;3&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&#34;code&#34;&gt;&lt;pre&gt;&lt;span class=&#34;line&#34;&gt;echo arg &lt;/span&gt;&lt;br&gt;&lt;span class=&#34;line&#34;&gt;echo -e arg #执行arg里的转义字符。echo加了-e默认会换行&lt;/span&gt;&lt;br&gt;&lt;span class=&#34;line&#34;&gt;echo arg &amp;gt; myfile #显示结果重定向至文件，会生成myfile文件&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;注意，echo后单引号和双引号作用是不同的。单引号不能转义里面的字符。双引号可有可无，单引号主要用在原样输出中。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html&t=shell 脚本编程之变量篇"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%93%E5%8D%B0-%E8%BE%93%E5%85%A5-%E8%BE%93%E5%87%BA"><span class="toc-number">1.</span> <span class="toc-text">打印&#x2F;输入&#x2F;输出</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%98%E9%87%8F%E5%AE%9A%E4%B9%89"><span class="toc-number">2.</span> <span class="toc-text">变量定义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%98%E9%87%8F%E7%B1%BB%E5%9E%8B"><span class="toc-number">2.1.</span> <span class="toc-text">变量类型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%B9%E6%AE%8A%E5%8F%98%E9%87%8F"><span class="toc-number">3.</span> <span class="toc-text">特殊变量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%92%8C-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">3.1.</span> <span class="toc-text">$* 和 $@ 的区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%80%E5%87%BA%E7%8A%B6%E6%80%81"><span class="toc-number">3.2.</span> <span class="toc-text">退出状态</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BD%AC%E4%B9%89%E5%AD%97%E7%AC%A6"><span class="toc-number">4.</span> <span class="toc-text">转义字符</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%91%BD%E4%BB%A4%E6%9B%BF%E6%8D%A2"><span class="toc-number">5.</span> <span class="toc-text">命令替换</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%98%E9%87%8F%E6%9B%BF%E6%8D%A2"><span class="toc-number">6.</span> <span class="toc-text">变量替换</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        shell 脚本编程之变量篇
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Jason Zhang</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2018-01-30T03:18:20.000Z" itemprop="datePublished">2018-01-30</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/%E8%84%9A%E6%9C%AC%E7%BC%96%E7%A8%8B-shell-bash/" rel="tag">脚本编程 shell bash</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="打印-输入-输出"><a href="#打印-输入-输出" class="headerlink" title="打印/输入/输出"></a>打印/输入/输出</h2><ul>
+<li><p><strong>echo</strong>： 是Shell的一个内部指令，用于在屏幕上打印出指定的字符串。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">echo arg </span><br><span class="line">echo -e arg #执行arg里的转义字符。echo加了-e默认会换行</span><br><span class="line">echo arg &gt; myfile #显示结果重定向至文件，会生成myfile文件</span><br></pre></td></tr></table></figure>
+<p>注意，echo后单引号和双引号作用是不同的。单引号不能转义里面的字符。双引号可有可无，单引号主要用在原样输出中。</p>
+</li>
+</ul>
+<a id="more"></a>
+<ul>
+<li><p><strong>printf</strong>：格式化输出语句。 <code>printf</code> 命令用于格式化输出， 是<code>echo</code>命令的增强版。它是C语言<code>printf()</code>库函数的一个有限的变形，并且在语法上有些不同。如同 <code>echo</code> 命令，<code>printf</code> 命令也可以输出简单的字符串:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">printf  &quot;hello\n&quot;</span><br></pre></td></tr></table></figure>
+<p><code>printf</code> 不像 <code>echo</code> 那样会自动换行，必须显式添加换行符(\n)。</p>
+<p>注意：<code>printf</code> 由 POSIX 标准所定义，移植性要比 <code>echo</code> 好。printf 命令的语法：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">printf  format-string  [arguments...]</span><br><span class="line"><span class="meta">#</span><span class="bash">format-string 为格式控制字符串，arguments 为参数列表。功能和用法与c语言的 <span class="built_in">printf</span> 命令类似。</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>read</strong>： 命令行从输入设备读入内容。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">!/bin/bash</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Author : lalal</span></span><br><span class="line"></span><br><span class="line">echo &quot;What is your name?&quot;</span><br><span class="line">read NAME #输入</span><br><span class="line">echo &quot;Hello, $NAME&quot;</span><br></pre></td></tr></table></figure>
+<p>运行脚本：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">chmod +x test.sh</span><br><span class="line">./test.sh</span><br><span class="line"></span><br><span class="line">What is your name?</span><br><span class="line">lalal</span><br><span class="line"></span><br><span class="line">Hello, lalal</span><br></pre></td></tr></table></figure>
+<p>​</p>
+</li>
+</ul>
+<h2 id="变量定义"><a href="#变量定义" class="headerlink" title="变量定义"></a>变量定义</h2><p>定义变量时，变量名不加美元符号（$）。注意，<strong>变量名和等号之间不能有空格</strong>，这可能和你熟悉的所有编程语言都不一样。有空格会出错。</p>
+<p>同时，变量名的命名须遵循如下规则：</p>
+<blockquote>
+<ul>
+<li>首个字符必须为字母（a-z，A-Z）。</li>
+<li>中间不能有空格，可以使用下划线（_）。</li>
+<li>不能使用标点符号。</li>
+<li>不能使用bash里的关键字（可用help命令查看保留关键字）。</li>
+</ul>
+</blockquote>
+<p>使用一个定义过的变量，只要在变量名前面加美元符号（$）即可。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">myUrl=&quot;lalal&quot;</span><br><span class="line">myNum=100</span><br><span class="line">your_name=&quot;lalal&quot;</span><br><span class="line">echo $your_name</span><br><span class="line">echo $&#123;your_name&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>变量名外面的花括号是可选的</strong>，加不加都行，加花括号是为了帮助解释器识别变量的边界，比如下面这种情况：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">for skill in C PHP Python Java </span><br><span class="line">do</span><br><span class="line">    echo &quot;I am good at $&#123;skill&#125;Script&quot;</span><br><span class="line">done</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>如果不给skill变量加花括号，写成<code>echo &quot;I am good at $skillScript&quot;</code>，解释器就会把<code>$skillScript</code>当成一个变量（其值为空），代码执行结果就不是我们期望的样子了。<strong>推荐给所有变量加上花括号，这是个好的编程习惯。</strong></p>
+<blockquote>
+<p>已定义的变量，可以被重新定义。</p>
+</blockquote>
+<p>在变量前面加<code>readonly</code> 命令可以将变量定义为只读变量，只读变量的值不能被改变。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">url&#x3D;&quot;http:&#x2F;&#x2F;www.baidu.com&quot;</span><br><span class="line">readonly url</span><br><span class="line">url&#x3D;&quot;http:&#x2F;&#x2F;www.baidu.com&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>使用 <code>unset</code> 命令可以删除变量。语法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">unset variable_name</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>变量被删除后不能再次使用；unset 命令不能删除只读变量。</p>
+<h3 id="变量类型"><a href="#变量类型" class="headerlink" title="变量类型"></a>变量类型</h3><p>运行shell时，会同时存在三种变量：</p>
+<p> <strong>1) 局部变量</strong> 局部变量在脚本或命令中定义，仅在当前shell实例中有效，其他shell启动的程序不能访问局部变量。</p>
+<p><strong>2) 环境变量</strong> 所有的程序，包括shell启动的程序，都能访问环境变量，有些程序需要环境变量来保证其正常运行。必要的时候shell脚本也可以定义环境变量。</p>
+<p><strong>3) shell变量</strong> shell变量是由shell程序设置的特殊变量。shell变量中有一部分是环境变量，有一部分是局部变量，这些变量保证了shell的正常运行。</p>
+<h2 id="特殊变量"><a href="#特殊变量" class="headerlink" title="特殊变量"></a>特殊变量</h2><p>前面已经讲到，<strong>变量名只能包含数字、字母和下划线</strong>，因为某些包含其他字符的变量有特殊含义，这样的变量被称为<strong>特殊变量</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>变量</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>$0</code></td>
+<td>当前脚本的文件名</td>
+</tr>
+<tr>
+<td><code>$n</code></td>
+<td>传递给脚本或函数的参数。n 是一个数字，表示第几个参数。例如，第一个参数是<code>$1</code>，第二个参数是<code>$2</code>。</td>
+</tr>
+<tr>
+<td><code>$#</code></td>
+<td>传递给脚本或函数的参数个数。</td>
+</tr>
+<tr>
+<td><code>$*</code></td>
+<td>传递给脚本或函数的所有参数。</td>
+</tr>
+<tr>
+<td><code>$@</code></td>
+<td>传递给脚本或函数的所有参数。被双引号(“ “)包含时，与 <code>$*</code> 稍有不同</td>
+</tr>
+<tr>
+<td><code>$?</code></td>
+<td>上个命令的退出状态，或函数的返回值。</td>
+</tr>
+<tr>
+<td><code>$$</code></td>
+<td>当前Shell进程ID。对于 Shell 脚本，就是这些脚本所在的进程ID。</td>
+</tr>
+</tbody>
+</table>
+<p>示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line">echo &quot;File Name: $0&quot;</span><br><span class="line">echo &quot;First Parameter : $1&quot;</span><br><span class="line">echo &quot;First Parameter : $2&quot;</span><br><span class="line">echo &quot;Quoted Values: $@&quot;</span><br><span class="line">echo &quot;Quoted Values: $*&quot;</span><br><span class="line">echo &quot;Total Number of Parameters : $#&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$.&#x2F;test.sh Zara Ali</span><br><span class="line">File Name : .&#x2F;test.sh</span><br><span class="line">First Parameter : Zara</span><br><span class="line">Second Parameter : Ali</span><br><span class="line">Quoted Values: Zara Ali</span><br><span class="line">Quoted Values: Zara Ali</span><br><span class="line">Total Number of Parameters : 2</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="和-的区别"><a href="#和-的区别" class="headerlink" title="$* 和 $@ 的区别"></a><code>$*</code> 和 <code>$@</code> 的区别</h3><p><code>$*</code> 和 <code>$@</code> 都表示传递给函数或脚本的所有参数，不被双引号(“ “)包含时，都以<code>&quot;$1&quot; &quot;$2&quot; … &quot;$n&quot;</code> 的形式输出所有参数。</p>
+<p>但是当它们被双引号(“ “)包含时，”<code>$*</code>” 会将所有的参数作为一个整体，以”<code>$1 $2 … $n</code>“的形式输出所有参数；”<code>$@</code>” 会将各个参数分开，以<code>&quot;$1&quot; &quot;$2&quot; … &quot;$n&quot;</code> 的形式输出所有参数。</p>
+<p>示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line">echo &quot;\$*&#x3D;&quot; $*</span><br><span class="line">echo &quot;\&quot;\$*\&quot;&#x3D;&quot; &quot;$*&quot;</span><br><span class="line">echo &quot;\$@&#x3D;&quot; $@</span><br><span class="line">echo &quot;\&quot;\$@\&quot;&#x3D;&quot; &quot;$@&quot;</span><br><span class="line">echo &quot;print each param from \$*&quot;</span><br><span class="line">for var in $*</span><br><span class="line">do</span><br><span class="line">    echo &quot;$var&quot;</span><br><span class="line">done</span><br><span class="line">echo &quot;print each param from \$@&quot;</span><br><span class="line">for var in $@</span><br><span class="line">do</span><br><span class="line">    echo &quot;$var&quot;</span><br><span class="line">done</span><br><span class="line">echo &quot;print each param from \&quot;\$*\&quot;&quot;</span><br><span class="line">for var in &quot;$*&quot;</span><br><span class="line">do</span><br><span class="line">    echo &quot;$var&quot;</span><br><span class="line">done</span><br><span class="line">echo &quot;print each param from \&quot;\$@\&quot;&quot;</span><br><span class="line">for var in &quot;$@&quot;</span><br><span class="line">do</span><br><span class="line">    echo &quot;$var&quot;</span><br><span class="line">done</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>执行 <code>./test.sh &quot;a&quot; &quot;b&quot; &quot;c&quot; &quot;d&quot;</code>，看到下面的结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">$*&#x3D;  a b c d</span><br><span class="line">&quot;$*&quot;&#x3D; a b c d</span><br><span class="line">$@&#x3D;  a b c d</span><br><span class="line">&quot;$@&quot;&#x3D; a b c d</span><br><span class="line">print each param from $*</span><br><span class="line">a</span><br><span class="line">b</span><br><span class="line">c</span><br><span class="line">d</span><br><span class="line">print each param from $@</span><br><span class="line">a</span><br><span class="line">b</span><br><span class="line">c</span><br><span class="line">d</span><br><span class="line">print each param from &quot;$*&quot;</span><br><span class="line">a b c d</span><br><span class="line">print each param from &quot;$@&quot;</span><br><span class="line">a</span><br><span class="line">b</span><br><span class="line">c</span><br><span class="line">d</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="退出状态"><a href="#退出状态" class="headerlink" title="退出状态"></a>退出状态</h3><p><code>$?</code> 可以获取上一个命令的退出状态。所谓退出状态，就是上一个命令执行后的返回结果。</p>
+<p>示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">if [[ $? !&#x3D; 0 ]];then</span><br><span class="line">  echo &quot;error&quot;</span><br><span class="line">  exit 1;</span><br><span class="line">fi</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>退出状态是一个数字，一般情况下，大部分命令执行成功会返回 0，失败返回 1。</p>
+<p>不过，也有一些命令返回其他值，表示不同类型的错误。</p>
+<h2 id="转义字符"><a href="#转义字符" class="headerlink" title="转义字符"></a>转义字符</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">转义字符    含义</span><br><span class="line">\\    反斜杠</span><br><span class="line">\a    警报，响铃</span><br><span class="line">\b    退格（删除键）</span><br><span class="line">\f    换页(FF)，将当前位置移到下页开头</span><br><span class="line">\n    换行</span><br><span class="line">\r    回车</span><br><span class="line">\t    水平制表符（tab键） </span><br><span class="line">\v    垂直制表符</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><strong>shell默认是不转义上面的字符的。需要加-e选项。</strong></p>
+<p>举个例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line">a&#x3D;11</span><br><span class="line">echo -e &quot;a is $a \n&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Value of a is 10</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>这里 <code>-e</code> 表示对转义字符进行替换。如果不使用 <code>-e</code> 选项，将会原样输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Value of a is 10\n</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>可以使用 echo 命令的 <code>-E</code> 选项禁止转义，默认也是不转义的；使用 <code>-n</code> 选项可以禁止插入换行符。</p>
+<h2 id="命令替换"><a href="#命令替换" class="headerlink" title="命令替换"></a>命令替换</h2><p>命令替换是指Shell可以先执行命令，将输出结果暂时保存，在适当的地方输出。</p>
+<p>语法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#96;command&#96;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><strong>注意是反引号，不是单引号，这个键位于 Esc 键下方。</strong></p>
+<p>下面的例子中，将命令执行结果保存在变量中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line">DATE&#x3D;&#96;date&#96;</span><br><span class="line">echo &quot;Date is $DATE&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="变量替换"><a href="#变量替换" class="headerlink" title="变量替换"></a>变量替换</h2><p>变量替换可以根据变量的状态（是否为空、是否定义等）来改变它的值。</p>
+<p>可以使用的变量替换形式：</p>
+<table>
+<thead>
+<tr>
+<th>形式</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>$&#123;var&#125;</code></td>
+<td>变量本来的值</td>
+</tr>
+<tr>
+<td><code>$&#123;var:-word&#125;</code></td>
+<td>如果变量 <code>var</code> 为空或已被删除(unset)，那么返回 word，但不改变 <code>var</code> 的值。</td>
+</tr>
+<tr>
+<td><code>$&#123;var:=word&#125;</code></td>
+<td>如果变量 <code>var</code> 为空或已被删除(unset)，那么返回 word，并将 <code>var</code> 的值设置为 word。</td>
+</tr>
+<tr>
+<td><code>$&#123;var:?message&#125;</code></td>
+<td>如果变量 <code>var</code> 为空或已被删除(unset)，那么将消息 message 送到标准错误输出，可以用来检测变量 <code>var</code> 是否可以被正常赋值。若此替换出现在Shell脚本中，那么脚本将停止运行。</td>
+</tr>
+<tr>
+<td><code>$&#123;var:+word&#125;</code></td>
+<td>如果变量 <code>var</code> 被定义，那么返回 word，但不改变 var 的值。</td>
+</tr>
+</tbody>
+</table>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>加载评论需要在浏览器启用 JavaScript 脚本支持。</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/archives">归档</a></li>
+         
+          <li><a href="/categories">分类</a></li>
+         
+          <li><a href="/tags">标签</a></li>
+         
+          <li><a href="/about">关于</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%93%E5%8D%B0-%E8%BE%93%E5%85%A5-%E8%BE%93%E5%87%BA"><span class="toc-number">1.</span> <span class="toc-text">打印&#x2F;输入&#x2F;输出</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%98%E9%87%8F%E5%AE%9A%E4%B9%89"><span class="toc-number">2.</span> <span class="toc-text">变量定义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%98%E9%87%8F%E7%B1%BB%E5%9E%8B"><span class="toc-number">2.1.</span> <span class="toc-text">变量类型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%B9%E6%AE%8A%E5%8F%98%E9%87%8F"><span class="toc-number">3.</span> <span class="toc-text">特殊变量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%92%8C-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">3.1.</span> <span class="toc-text">$* 和 $@ 的区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%80%E5%87%BA%E7%8A%B6%E6%80%81"><span class="toc-number">3.2.</span> <span class="toc-text">退出状态</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BD%AC%E4%B9%89%E5%AD%97%E7%AC%A6"><span class="toc-number">4.</span> <span class="toc-text">转义字符</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%91%BD%E4%BB%A4%E6%9B%BF%E6%8D%A2"><span class="toc-number">5.</span> <span class="toc-text">命令替换</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%98%E9%87%8F%E6%9B%BF%E6%8D%A2"><span class="toc-number">6.</span> <span class="toc-text">变量替换</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html&text=shell 脚本编程之变量篇"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html&title=shell 脚本编程之变量篇"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html&is_video=false&description=shell 脚本编程之变量篇"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=shell 脚本编程之变量篇&body=Check out this article: https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html&title=shell 脚本编程之变量篇"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html&title=shell 脚本编程之变量篇"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html&title=shell 脚本编程之变量篇"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html&title=shell 脚本编程之变量篇"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html&name=shell 脚本编程之变量篇&description=&lt;h2 id=&#34;打印-输入-输出&#34;&gt;&lt;a href=&#34;#打印-输入-输出&#34; class=&#34;headerlink&#34; title=&#34;打印/输入/输出&#34;&gt;&lt;/a&gt;打印/输入/输出&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;echo&lt;/strong&gt;： 是Shell的一个内部指令，用于在屏幕上打印出指定的字符串。&lt;/p&gt;
+&lt;figure class=&#34;highlight shell&#34;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&#34;gutter&#34;&gt;&lt;pre&gt;&lt;span class=&#34;line&#34;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&#34;line&#34;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&#34;line&#34;&gt;3&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&#34;code&#34;&gt;&lt;pre&gt;&lt;span class=&#34;line&#34;&gt;echo arg &lt;/span&gt;&lt;br&gt;&lt;span class=&#34;line&#34;&gt;echo -e arg #执行arg里的转义字符。echo加了-e默认会换行&lt;/span&gt;&lt;br&gt;&lt;span class=&#34;line&#34;&gt;echo arg &amp;gt; myfile #显示结果重定向至文件，会生成myfile文件&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;注意，echo后单引号和双引号作用是不同的。单引号不能转义里面的字符。双引号可有可无，单引号主要用在原样输出中。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://zhangsong.site/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html&t=shell 脚本编程之变量篇"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    <nav>
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/archives">归档</a></li>
+         
+          <li><a href="/categories">分类</a></li>
+         
+          <li><a href="/tags">标签</a></li>
+         
+          <li><a href="/about">关于</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+  <div class="footer-right">
+    Copyright &copy; 2020 Jason Zhang 京ICP备20004994号
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'zhangsong';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
+</body>
+</html>

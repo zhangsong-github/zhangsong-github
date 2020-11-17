@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="ES5 中的仿类结构  创建一个构造器，然后将方法指派到该构造器的原型上。这种方式通常被称为创建一个自定义类型。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ES6 笔记之 Class">
+<meta property="og:url" content="https://zhangsong.site/es6-Class.html">
+<meta property="og:site_name" content="Jason Zhang">
+<meta property="og:description" content="ES5 中的仿类结构  创建一个构造器，然后将方法指派到该构造器的原型上。这种方式通常被称为创建一个自定义类型。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-03-02T10:02:25.000Z">
+<meta property="article:modified_time" content="2020-09-27T09:44:38.663Z">
+<meta property="article:author" content="Jason Zhang">
+<meta property="article:tag" content="es6">
+<meta name="twitter:card" content="summary">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>ES6 笔记之 Class</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+<meta name="generator" content="Hexo 5.0.2"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/archives">归档</a></li>
+         
+          <li><a href="/categories">分类</a></li>
+         
+          <li><a href="/tags">标签</a></li>
+         
+          <li><a href="/about">关于</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/ES6-SetAndMap.html"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/ES6-Symbol.html"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://zhangsong.site/es6-Class.html"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://zhangsong.site/es6-Class.html&text=ES6 笔记之 Class"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://zhangsong.site/es6-Class.html&title=ES6 笔记之 Class"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://zhangsong.site/es6-Class.html&is_video=false&description=ES6 笔记之 Class"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=ES6 笔记之 Class&body=Check out this article: https://zhangsong.site/es6-Class.html"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://zhangsong.site/es6-Class.html&title=ES6 笔记之 Class"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://zhangsong.site/es6-Class.html&title=ES6 笔记之 Class"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://zhangsong.site/es6-Class.html&title=ES6 笔记之 Class"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://zhangsong.site/es6-Class.html&title=ES6 笔记之 Class"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://zhangsong.site/es6-Class.html&name=ES6 笔记之 Class&description=&lt;h3 id=&#34;ES5-中的仿类结构&#34;&gt;&lt;a href=&#34;#ES5-中的仿类结构&#34; class=&#34;headerlink&#34; title=&#34;ES5 中的仿类结构&#34;&gt;&lt;/a&gt;ES5 中的仿类结构&lt;/h3&gt;&lt;blockquote&gt;
+&lt;p&gt; 创建一个构造器，然后将方法指派到该构造器的原型上。这种方式通常被称为创建一个自定义类型。&lt;/p&gt;
+&lt;/blockquote&gt;"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://zhangsong.site/es6-Class.html&t=ES6 笔记之 Class"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#ES5-%E4%B8%AD%E7%9A%84%E4%BB%BF%E7%B1%BB%E7%BB%93%E6%9E%84"><span class="toc-number">1.</span> <span class="toc-text">ES5 中的仿类结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B1%BB%E7%9A%84%E5%A3%B0%E6%98%8E"><span class="toc-number">2.</span> <span class="toc-text">类的声明</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B7%E5%90%8D%E7%B1%BB%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">3.</span> <span class="toc-text">具名类表达式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BF%E9%97%AE%E5%99%A8%E5%B1%9E%E6%80%A7"><span class="toc-number">4.</span> <span class="toc-text">访问器属性</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        ES6 笔记之 Class
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Jason Zhang</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2018-03-02T10:02:25.000Z" itemprop="datePublished">2018-03-02</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/es6/">es6</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/es6/" rel="tag">es6</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h3 id="ES5-中的仿类结构"><a href="#ES5-中的仿类结构" class="headerlink" title="ES5 中的仿类结构"></a>ES5 中的仿类结构</h3><blockquote>
+<p> 创建一个构造器，然后将方法指派到该构造器的原型上。这种方式通常被称为创建一个自定义类型。</p>
+</blockquote>
+<a id="more"></a>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">PersonType</span>(<span class="params">name</span>)</span>&#123;</span><br><span class="line">    <span class="built_in">this</span>.name = name;</span><br><span class="line">&#125;</span><br><span class="line">PersonType.prototype.sayName = <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="built_in">this</span>.name);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> person = <span class="keyword">new</span> PersonType(<span class="string">&#x27;Tom&#x27;</span>);</span><br><span class="line">person.sayName(); <span class="comment">//&quot;Tom&quot;</span></span><br></pre></td></tr></table></figure>
+<h3 id="类的声明"><a href="#类的声明" class="headerlink" title="类的声明"></a>类的声明</h3><ul>
+<li><p>基本类的声明</p>
+<blockquote>
+<p> 类声明以 class 关键字开始，其后是类的名称。剩余部分的语法看起来就像是对象字面量中的方法简写。并且在方法之间不需要使用逗号间隔。</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PersonClass</span> </span>&#123;</span><br><span class="line">    <span class="keyword">constructor</span>(name)&#123;</span><br><span class="line">        <span class="built_in">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line">      sayName()&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="built_in">this</span>.name);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> person = <span class="keyword">new</span> PersonClass(<span class="string">&quot;Jason&quot;</span>);</span><br><span class="line">person.sayName(); <span class="comment">// &quot;Jason&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//表达式声明</span></span><br><span class="line"><span class="keyword">let</span> PersonClass = <span class="class"><span class="keyword">class</span></span>&#123;</span><br><span class="line">    <span class="keyword">constructor</span>(name)&#123;</span><br><span class="line">        <span class="built_in">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line">      sayName()&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="built_in">this</span>.name);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> person = <span class="keyword">new</span> PersonClass(<span class="string">&quot;Jason&quot;</span>);</span><br><span class="line">person.sayName(); <span class="comment">// &quot;Jason&quot;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>类与自定义类型的区别</p>
+<ul>
+<li>类声明不会被提升。类的声明与 let 相似，存在暂时性死区。</li>
+<li>类声明下的代码是严格模式的且无法退出。</li>
+<li>类的所有方法都是不可枚举的。</li>
+<li>类的所有方法内部都没有构造器函数，因此不能使用 new 来调用。</li>
+<li>调用类构造器的时候必须使用 new ，否则会抛出错误。</li>
+<li>试图在类的方法内部重写类名，会抛出错误。</li>
+</ul>
+</li>
+</ul>
+<h3 id="具名类表达式"><a href="#具名类表达式" class="headerlink" title="具名类表达式"></a>具名类表达式</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> PersonClass = <span class="class"><span class="keyword">class</span> <span class="title">PersonClass2</span></span>&#123;</span><br><span class="line">    <span class="keyword">constructor</span>(name)&#123;</span><br><span class="line">        <span class="built_in">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line">      sayName()&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="built_in">this</span>.name);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">console</span>.log(PersonClass); <span class="comment">//&quot;function&quot;</span></span><br><span class="line"><span class="built_in">console</span>.log(PersonClass2); <span class="comment">//&quot;undefined&quot;</span></span><br></pre></td></tr></table></figure>
+<h3 id="访问器属性"><a href="#访问器属性" class="headerlink" title="访问器属性"></a>访问器属性</h3><blockquote>
+<p> 为了创建一个 <strong>getter</strong> 要使用 <strong>get</strong> 关键字，并在标识符后面留出空格。 <strong>setter</strong> 同理。</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">customHTMLElement</span> </span>&#123;</span><br><span class="line">    <span class="keyword">constructor</span> (element)&#123;</span><br><span class="line">        <span class="built_in">this</span>.element = element;</span><br><span class="line">    &#125;</span><br><span class="line">  get html ()&#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">this</span>.element.innerHTML;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  set html (value)&#123;</span><br><span class="line">      <span class="built_in">this</span>.element.innerHTML = value;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>加载评论需要在浏览器启用 JavaScript 脚本支持。</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/archives">归档</a></li>
+         
+          <li><a href="/categories">分类</a></li>
+         
+          <li><a href="/tags">标签</a></li>
+         
+          <li><a href="/about">关于</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#ES5-%E4%B8%AD%E7%9A%84%E4%BB%BF%E7%B1%BB%E7%BB%93%E6%9E%84"><span class="toc-number">1.</span> <span class="toc-text">ES5 中的仿类结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B1%BB%E7%9A%84%E5%A3%B0%E6%98%8E"><span class="toc-number">2.</span> <span class="toc-text">类的声明</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B7%E5%90%8D%E7%B1%BB%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">3.</span> <span class="toc-text">具名类表达式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BF%E9%97%AE%E5%99%A8%E5%B1%9E%E6%80%A7"><span class="toc-number">4.</span> <span class="toc-text">访问器属性</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://zhangsong.site/es6-Class.html"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://zhangsong.site/es6-Class.html&text=ES6 笔记之 Class"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://zhangsong.site/es6-Class.html&title=ES6 笔记之 Class"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://zhangsong.site/es6-Class.html&is_video=false&description=ES6 笔记之 Class"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=ES6 笔记之 Class&body=Check out this article: https://zhangsong.site/es6-Class.html"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://zhangsong.site/es6-Class.html&title=ES6 笔记之 Class"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://zhangsong.site/es6-Class.html&title=ES6 笔记之 Class"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://zhangsong.site/es6-Class.html&title=ES6 笔记之 Class"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://zhangsong.site/es6-Class.html&title=ES6 笔记之 Class"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://zhangsong.site/es6-Class.html&name=ES6 笔记之 Class&description=&lt;h3 id=&#34;ES5-中的仿类结构&#34;&gt;&lt;a href=&#34;#ES5-中的仿类结构&#34; class=&#34;headerlink&#34; title=&#34;ES5 中的仿类结构&#34;&gt;&lt;/a&gt;ES5 中的仿类结构&lt;/h3&gt;&lt;blockquote&gt;
+&lt;p&gt; 创建一个构造器，然后将方法指派到该构造器的原型上。这种方式通常被称为创建一个自定义类型。&lt;/p&gt;
+&lt;/blockquote&gt;"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://zhangsong.site/es6-Class.html&t=ES6 笔记之 Class"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    <nav>
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/archives">归档</a></li>
+         
+          <li><a href="/categories">分类</a></li>
+         
+          <li><a href="/tags">标签</a></li>
+         
+          <li><a href="/about">关于</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+  <div class="footer-right">
+    Copyright &copy; 2020 Jason Zhang 京ICP备20004994号
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'zhangsong';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
+</body>
+</html>

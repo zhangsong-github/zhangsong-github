@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="场景  大部分场景我们都需要，前后端分离开发，我们的静态资源( js , css , img)很可能部署在静态服务器上，后台服务器在联调的时候往往是后台同学自己的机器。我们的静态资源( js , css , img)在页面中是以标签引入的，不会有什么跨域问题，但是当我们联调接口，用 ajax 拿数据的时候问题就来了。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nginx 反向代理解决跨域问题">
+<meta property="og:url" content="https://zhangsong.site/crossOrigin.html">
+<meta property="og:site_name" content="Jason Zhang">
+<meta property="og:description" content="场景  大部分场景我们都需要，前后端分离开发，我们的静态资源( js , css , img)很可能部署在静态服务器上，后台服务器在联调的时候往往是后台同学自己的机器。我们的静态资源( js , css , img)在页面中是以标签引入的，不会有什么跨域问题，但是当我们联调接口，用 ajax 拿数据的时候问题就来了。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2017/12/15/5a3359715badc.jpg">
+<meta property="article:published_time" content="2017-02-28T07:28:42.000Z">
+<meta property="article:modified_time" content="2020-09-27T09:44:38.663Z">
+<meta property="article:author" content="Jason Zhang">
+<meta property="article:tag" content="cross-origin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2017/12/15/5a3359715badc.jpg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>Nginx 反向代理解决跨域问题</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+<meta name="generator" content="Hexo 5.0.2"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/archives">归档</a></li>
+         
+          <li><a href="/categories">分类</a></li>
+         
+          <li><a href="/tags">标签</a></li>
+         
+          <li><a href="/about">关于</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/shell-%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80.html"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/HttpsRemark.html"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://zhangsong.site/crossOrigin.html"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://zhangsong.site/crossOrigin.html&text=Nginx 反向代理解决跨域问题"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://zhangsong.site/crossOrigin.html&title=Nginx 反向代理解决跨域问题"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://zhangsong.site/crossOrigin.html&is_video=false&description=Nginx 反向代理解决跨域问题"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Nginx 反向代理解决跨域问题&body=Check out this article: https://zhangsong.site/crossOrigin.html"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://zhangsong.site/crossOrigin.html&title=Nginx 反向代理解决跨域问题"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://zhangsong.site/crossOrigin.html&title=Nginx 反向代理解决跨域问题"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://zhangsong.site/crossOrigin.html&title=Nginx 反向代理解决跨域问题"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://zhangsong.site/crossOrigin.html&title=Nginx 反向代理解决跨域问题"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://zhangsong.site/crossOrigin.html&name=Nginx 反向代理解决跨域问题&description=&lt;h2 id=&#34;场景&#34;&gt;&lt;a href=&#34;#场景&#34; class=&#34;headerlink&#34; title=&#34;场景&#34;&gt;&lt;/a&gt;场景&lt;/h2&gt;&lt;blockquote&gt;
+&lt;p&gt; 大部分场景我们都需要，前后端分离开发，我们的静态资源( js , css , img)很可能部署在静态服务器上，后台服务器在联调的时候往往是后台同学自己的机器。我们的静态资源( js , css , img)在页面中是以标签引入的，不会有什么跨域问题，但是当我们联调接口，用 ajax 拿数据的时候问题就来了。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://i.loli.net/2017/12/15/5a3359715badc.jpg&#34; alt=&#34;corss-origin.jpg&#34;&gt;&lt;/p&gt;"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://zhangsong.site/crossOrigin.html&t=Nginx 反向代理解决跨域问题"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E5%9B%A0"><span class="toc-number">2.</span> <span class="toc-text">原因</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3"><span class="toc-number">3.</span> <span class="toc-text">解决</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#nginx-%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86"><span class="toc-number">3.1.</span> <span class="toc-text">nginx 反向代理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Nginx-%E7%9A%84%E5%AE%89%E8%A3%85"><span class="toc-number">3.1.1.</span> <span class="toc-text">Nginx 的安装</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E6%9C%AC%E5%9C%B0-host-%E6%96%87%E4%BB%B6"><span class="toc-number">3.1.2.</span> <span class="toc-text">配置本地 host 文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE-Nginx-%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86"><span class="toc-number">3.1.3.</span> <span class="toc-text">配置 Nginx 反向代理</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%A1%A5%E5%85%85%EF%BC%9A"><span class="toc-number">3.1.3.1.</span> <span class="toc-text">补充：</span></a></li></ol></li></ol></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Nginx 反向代理解决跨域问题
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Jason Zhang</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2017-02-28T07:28:42.000Z" itemprop="datePublished">2017-02-28</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/%E9%97%AE%E9%A2%98%E9%9B%86%E6%95%A3%E5%9C%B0/">问题集散地</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/cross-origin/" rel="tag">cross-origin</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h2><blockquote>
+<p> 大部分场景我们都需要，前后端分离开发，我们的静态资源( js , css , img)很可能部署在静态服务器上，后台服务器在联调的时候往往是后台同学自己的机器。我们的静态资源( js , css , img)在页面中是以标签引入的，不会有什么跨域问题，但是当我们联调接口，用 ajax 拿数据的时候问题就来了。</p>
+</blockquote>
+<p><img src="https://i.loli.net/2017/12/15/5a3359715badc.jpg" alt="corss-origin.jpg"></p>
+<a id="more"></a>
+<h2 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h2><p><em>同源策略</em></p>
+<blockquote>
+<p>同源：如果协议，端口（如果指定了一个）和域名对于两个页面是相同的，则两个页面具有相同的<strong>源</strong>。</p>
+<ul>
+<li>协议相同</li>
+<li>域名相同</li>
+<li>端口相同</li>
+</ul>
+<p>举例来说，<code>http://www.example.com/dir/page.html</code>这个网址，协议是<code>http://</code>，域名是<code>www.example.com</code>，端口是<code>80</code>（默认端口可以省略）。它的同源情况如下。</p>
+<ul>
+<li><code>http://www.example.com/dir2/other.html</code>：同源</li>
+<li><code>http://example.com/dir/other.html</code>：不同源（域名不同）</li>
+<li><code>http://v2.www.example.com/dir/other.html</code>：不同源（域名不同）</li>
+<li><code>http://www.example.com:81/dir/other.html</code>：不同源（端口不同）</li>
+</ul>
+<p>策略 ：目前，如果非同源，共有三种行为受到限制。</p>
+<ul>
+<li>Cookie、LocalStorage 和 IndexDB 无法读取。</li>
+<li>DOM 无法获得。</li>
+<li>AJAX 请求不能发送。</li>
+</ul>
+</blockquote>
+<h2 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h2><h3 id="nginx-反向代理"><a href="#nginx-反向代理" class="headerlink" title="nginx 反向代理"></a>nginx 反向代理</h3><p>策略：通过 host 映射项目域名 project.name.com 到 后台服务器，配置反向代理，将项目的静态模板目录指向我们前端同学的机器，我们在本地 Nginx 添加一条配置项，配好项目目录就 OK了。</p>
+<h4 id="Nginx-的安装"><a href="#Nginx-的安装" class="headerlink" title="Nginx 的安装"></a>Nginx 的安装</h4><p><em>Mac</em></p>
+<p>Mac 系统一般都已经预装了 Nginx 环境，如果没有，推荐使用  <a target="_blank" rel="noopener" href="https://brew.sh/">homeBrew</a> 进行安装 :</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~ brew install nginx</span><br></pre></td></tr></table></figure>
+<p>Nginx 服务的启动和停止 : </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#启动</span></span></span><br><span class="line">~ sudo nginx </span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#停止</span></span></span><br><span class="line">~ sudo nginx -s stop</span><br></pre></td></tr></table></figure>
+<p><em>Windows</em></p>
+<p>选择版本，下载 <a target="_blank" rel="noopener" href="http://nginx.org/en/download.html">安装文件</a>，进行安装。</p>
+<h4 id="配置本地-host-文件"><a href="#配置本地-host-文件" class="headerlink" title="配置本地 host 文件"></a>配置本地 host 文件</h4><p><em>Mac</em> </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~ sudo vim /etc/hosts</span><br></pre></td></tr></table></figure>
+<p><em>Windows</em></p>
+<p>windows 的 hosts 文件在 <code>C:\Windows\System32\drivers\etc</code>目录下，可以用文本编辑器进行编辑；</p>
+<p>添加 host 映射，将项目域名映射到与你联调接口的小 A 的机器上或者后台的开发服务器上；</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">192.168.1.112  project.name.com</span><br></pre></td></tr></table></figure>
+<h4 id="配置-Nginx-反向代理"><a href="#配置-Nginx-反向代理" class="headerlink" title="配置 Nginx 反向代理"></a>配置 Nginx 反向代理</h4><p><em>Mac</em></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 编辑配置文件</span></span></span><br><span class="line">~ sudo vim /usr/local/etc/nginx/nginx.conf</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 添加配置:</span></span></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name project.name.com;</span><br><span class="line">    location /&#123;</span><br><span class="line">    ## 你的本地项目目录</span><br><span class="line">       root ~/workSpace/frontend/moduleNme;</span><br><span class="line">       index index.html index.htm;</span><br><span class="line">    &#125;</span><br><span class="line">    ## 配置上你正在联调的接口地址，一般到模块级别</span><br><span class="line">    location ^~ /api &#123;</span><br><span class="line">        ## 下面的地址配置上服务器 IP</span><br><span class="line">        proxy_pass http://192.168.33.10;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><em>Windows</em></p>
+<p>假设安装目录是<code>C:\Windows\nginx</code> ，那么配置文件是 <code>C:\Windows\nginx\conf\nginx.conf</code>，配置项同上。</p>
+<p>大功告成~</p>
+<hr>
+<p>如果你习惯了 node 环境 ，使用 node httpServer 也可以实现，另外 webpack 的 dev-server 也可以很方便提供代理功能。</p>
+<hr>
+<h5 id="补充："><a href="#补充：" class="headerlink" title="补充："></a>补充：</h5><blockquote>
+<p>最近在做老项目改造，原来的项目页面是 jsp 渲染，现在要做前后端分离，这种情况下很多时候需要参考以前项目的功能和交互。如果我们直接把域名代理到本地，然后指向静态模板，这样就没办法切换了，只能借助工具或手工修改 hosts 文件。比较麻烦。但是这种 case 用 Nginx 反向代理配置就比较容易实现。实现配置如下即可👇</p>
+</blockquote>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 编辑配置文件</span></span></span><br><span class="line">~ sudo vim /usr/local/etc/nginx/nginx.conf</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 添加配置:</span></span></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name project.name.com;</span><br><span class="line">    location /&#123;</span><br><span class="line">    ## 下面的地址配置上服务器 IP</span><br><span class="line">        proxy_pass http://192.168.33.10;</span><br><span class="line">    &#125;</span><br><span class="line">    ## 配置上你正在联调的接口地址，一般到模块级别</span><br><span class="line">    location ^~ /frontend &#123;</span><br><span class="line">        ## 你的本地项目目录 注意，除非你的模板目录一直在 Nginx 安装磁盘的顶级目录，这里不要使用 root,使用软链接 alias 实现</span><br><span class="line">       alias ~/workSpace/template;</span><br><span class="line">       index index.html index.htm;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>加载评论需要在浏览器启用 JavaScript 脚本支持。</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/archives">归档</a></li>
+         
+          <li><a href="/categories">分类</a></li>
+         
+          <li><a href="/tags">标签</a></li>
+         
+          <li><a href="/about">关于</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E5%9B%A0"><span class="toc-number">2.</span> <span class="toc-text">原因</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3"><span class="toc-number">3.</span> <span class="toc-text">解决</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#nginx-%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86"><span class="toc-number">3.1.</span> <span class="toc-text">nginx 反向代理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Nginx-%E7%9A%84%E5%AE%89%E8%A3%85"><span class="toc-number">3.1.1.</span> <span class="toc-text">Nginx 的安装</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E6%9C%AC%E5%9C%B0-host-%E6%96%87%E4%BB%B6"><span class="toc-number">3.1.2.</span> <span class="toc-text">配置本地 host 文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE-Nginx-%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86"><span class="toc-number">3.1.3.</span> <span class="toc-text">配置 Nginx 反向代理</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%A1%A5%E5%85%85%EF%BC%9A"><span class="toc-number">3.1.3.1.</span> <span class="toc-text">补充：</span></a></li></ol></li></ol></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://zhangsong.site/crossOrigin.html"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://zhangsong.site/crossOrigin.html&text=Nginx 反向代理解决跨域问题"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://zhangsong.site/crossOrigin.html&title=Nginx 反向代理解决跨域问题"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://zhangsong.site/crossOrigin.html&is_video=false&description=Nginx 反向代理解决跨域问题"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Nginx 反向代理解决跨域问题&body=Check out this article: https://zhangsong.site/crossOrigin.html"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://zhangsong.site/crossOrigin.html&title=Nginx 反向代理解决跨域问题"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://zhangsong.site/crossOrigin.html&title=Nginx 反向代理解决跨域问题"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://zhangsong.site/crossOrigin.html&title=Nginx 反向代理解决跨域问题"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://zhangsong.site/crossOrigin.html&title=Nginx 反向代理解决跨域问题"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://zhangsong.site/crossOrigin.html&name=Nginx 反向代理解决跨域问题&description=&lt;h2 id=&#34;场景&#34;&gt;&lt;a href=&#34;#场景&#34; class=&#34;headerlink&#34; title=&#34;场景&#34;&gt;&lt;/a&gt;场景&lt;/h2&gt;&lt;blockquote&gt;
+&lt;p&gt; 大部分场景我们都需要，前后端分离开发，我们的静态资源( js , css , img)很可能部署在静态服务器上，后台服务器在联调的时候往往是后台同学自己的机器。我们的静态资源( js , css , img)在页面中是以标签引入的，不会有什么跨域问题，但是当我们联调接口，用 ajax 拿数据的时候问题就来了。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://i.loli.net/2017/12/15/5a3359715badc.jpg&#34; alt=&#34;corss-origin.jpg&#34;&gt;&lt;/p&gt;"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://zhangsong.site/crossOrigin.html&t=Nginx 反向代理解决跨域问题"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    <nav>
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/archives">归档</a></li>
+         
+          <li><a href="/categories">分类</a></li>
+         
+          <li><a href="/tags">标签</a></li>
+         
+          <li><a href="/about">关于</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+  <div class="footer-right">
+    Copyright &copy; 2020 Jason Zhang 京ICP备20004994号
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'zhangsong';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
+</body>
+</html>
