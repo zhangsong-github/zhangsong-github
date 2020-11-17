@@ -16,7 +16,7 @@
 
 ---
 
-## terms
+## phrase
 
 ### marathon mentality
 

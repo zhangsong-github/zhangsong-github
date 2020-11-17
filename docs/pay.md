@@ -6,7 +6,7 @@
 
 ### debate
 
-## terms
+## phrase
 
 ### pay through the nose
 
